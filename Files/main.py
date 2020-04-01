@@ -1,6 +1,6 @@
 import discord
 
-TOKEN = "Njk0ODg2NTE2MTE5NDM3NDEy.XoS0hQ.2AR27Alth1pT39tyr9OB3snGDxI"
+TOKEN = "Njk0ODg2NTE2MTE5NDM3NDEy.XoTBKg.bkT8EDChm-esKsP9DwssXLwgQq0"
 
 class DiscordBot(discord.Client) :
     def __init__(self):
@@ -44,8 +44,11 @@ class DiscordBot(discord.Client) :
         if (reaction.message.content == "Qui veut jouer ?" and reaction.emoji == "👍"):
             self.partyPlayer.append(user.name)
         if (reaction.message.content == "Qui veut jouer ?" and reaction.emoji == "▶️"):
-            if (user.name == self.owner):                
+            if (user.name == self.owner):
                 await reaction.message.channel.send("Liste des joueurs :\n - " + "\n - ".join(self.partyPlayer))
+                if (user.dm_channel == None):
+                    await user.create_dm()
+                await user.dm_channel.send("Configuration :")
             else :
                 await reaction.message.channel.send(user.name + " vous n'etes pas le MDJ")
     async def on_reaction_remove(self,reaction,user):
