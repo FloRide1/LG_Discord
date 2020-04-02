@@ -8,7 +8,6 @@ class Party:
         self.choiced = None
         self.number = None
         self.message = [None,None]
-        self.lRoles = []
         self.multiple = ["👨‍🌾","🐺"]
         self.roleMax = []
         self.fileString = ["👨‍🌾 Villageois","🔮 Voyante","🏹 Chasseur","🐺 LG","🧹 Witch","❤️ Cupidon"]
@@ -16,18 +15,36 @@ class Party:
         self.reactionNumber = ["0️⃣","1️⃣","2️⃣","3️⃣","4️⃣","5️⃣","6️⃣","7️⃣","8️⃣","9️⃣"]
 
     async def on_configuration_update(self):
+        
         strQ = ""
-        print(self.listRoles)
+        #print(self.listRoles)
         for i in self.fileString:
             strQ += "\n"
             if (i.split(" ")[0] in self.listRoles):
-                if (self.listRoles[self.listRoles.index(i.split(" ")[0])+1]>0):
+                number = self.listRoles[self.listRoles.index(i.split(" ")[0])+1]
+                if (number>0):
                     strQ+="+ " + i
+                    if number>=2:
+                        strQ+= "×" + str(number)
                 else:
-                    strQ += "- " + i 
+                    strQ += "- " + i
             else:
                 strQ += "- " + i 
-        strR = ("```diff\nRoles : {0}/{1}{2}```").format(len(self.lRoles),len(self.listPlayers),strQ)
+        number = 0
+        for i in range(int(len(self.listRoles)/2)):
+            number+= self.listRoles[2*i+1]
+        strR = ("```diff\nRoles : {0}/{1}{2}```").format(number,len(self.listPlayers),strQ)
+        if (number == len(self.listPlayers)):
+            try :
+                await self.message[0].add_reaction("▶️")
+            except :
+                None
+        else :
+            try:
+                await self.message[0].remove_reaction("▶️",self.message[0].author)
+            except :
+                None
+        
         if (self.message[0] != None):
             await self.message[0].edit(content = strR)
         else:
@@ -54,6 +71,13 @@ class Party:
             await reaction.message.remove_reaction(reaction.emoji,user)
             await user.dm_channel.send("Dégage Connard...")
             return
+        if (reaction.emoji == "▶️"):
+            await self.message[0].delete()
+            await self.message[1].delete()
+            message = await reaction.message.channel.send("Voulez montrer la configuration aux autres joueurs ?")
+            await message.add_reaction("👍")
+            await message.add_reaction("👎")
+            return
         self.choiced = reaction.emoji
         for i in reaction.message.reactions:
                 if (i.emoji != reaction.emoji and i.count>=2):
@@ -64,13 +88,19 @@ class Party:
                 self.number = None
         else :
             return
-        if (self.number != None):
-            try:
-                self.listRoles[self.listRoles.index(reaction.emoji)+1] = self.number
-            except:
+        if (self.number != None and self != 0 and self.choiced != None):
+            if (self.choiced in self.listRoles):
+                self.listRoles[self.listRoles.index(self.choiced)+1] = self.number
+            else:
                 self.listRoles.append(self.choiced)
                 self.listRoles.append(self.number)
-        await self.on_configuration_update()
+            await self.on_configuration_update()
+        elif (self.number == 0):
+            if (self.choiced in self.listRoles):
+                index = self.listRoles.index(self.choiced)
+                del self.listRoles[index]
+                del self.listRoles[index]
+            await self.on_configuration_update()
         
 
 
@@ -90,13 +120,19 @@ class Party:
         for i in reaction.message.reactions:
             if (i.emoji != reaction.emoji and i.count>=2):
                 await i.message.remove_reaction(i.emoji,user)
-        if (self.choiced != None):
-            try:
+        if (self.choiced != None and self.number != 0):
+            if (self.choiced in self.listRoles):
                 self.listRoles[self.listRoles.index(self.choiced)+1] = self.number
-            except:
+            else:
                 self.listRoles.append(self.choiced)
                 self.listRoles.append(self.number)
-        await self.on_configuration_update()
+            await self.on_configuration_update()
+        elif (self.number == 0):
+            if (self.choiced in self.listRoles):
+                index = self.listRoles.index(self.choiced)
+                del self.listRoles[index]
+                del self.listRoles[index]
+            await self.on_configuration_update()
 
     async def on_character_unchoice(self,reaction,user):
         if (reaction.message.content != self.message[0].content or reaction.message.author == user):
