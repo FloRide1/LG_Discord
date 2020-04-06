@@ -2,7 +2,7 @@ import discord
 from party import *
 from partyLaunch import *
 
-TOKEN = "Njk0ODg2NTE2MTE5NDM3NDEy.XoYNYg.dKHLKlQl6JIS8kYaYpiEhQppuRM"
+TOKEN = "Njk0ODg2NTE2MTE5NDM3NDEy.XocNfQ.rccy2KbcU8LE1MOQw8X68W3J1bA"
 
 class DiscordBot(discord.Client) :
     def __init__(self):
